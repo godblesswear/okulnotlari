@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ders Notları</title>
+<style>
+:root{--bg:#070606;--panel:#120d0d;--line:#2a1717;--red:#9b1c1c;--red2:#c42b2b;--text:#d9d0d0;--mute:#7d6e6e;color-scheme:dark}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--text);font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh}
+header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 24px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+h1{font-size:17px;font-weight:600;letter-spacing:.2px;cursor:default}
+h1 i{display:inline-block;width:9px;height:9px;background:var(--red);border-radius:50%;margin-right:9px}
+nav{display:flex;gap:4px}
+nav button{background:none;border:0;color:var(--mute);padding:7px 14px;border-radius:6px;font:inherit;cursor:pointer}
+nav button:hover{color:var(--text)}
+nav button.on{background:var(--red);color:#fff}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--red2);outline-offset:2px}
+main{max-width:880px;margin:0 auto;padding:28px 20px 60px}
+section{display:none}section.on{display:block}
+h2{font-size:20px;font-weight:600;margin-bottom:16px}
+textarea,input[type=text],input[type=number]{width:100%;background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:11px 13px;font:inherit}
+textarea{min-height:340px;resize:vertical;line-height:1.6}
+.row{display:flex;gap:8px;margin-bottom:14px}
+.btn{background:var(--red);color:#fff;border:0;border-radius:8px;padding:9px 16px;font:inherit;cursor:pointer;white-space:nowrap}
+.btn:hover{background:var(--red2)}
+.btn.ghost{background:none;border:1px solid var(--line);color:var(--mute)}
+.btn.ghost:hover{color:var(--text);border-color:var(--red)}
+.mute{color:var(--mute);font-size:13px}
+ul{list-style:none;padding:0}
+li.t{display:flex;align-items:center;gap:12px;padding:10px 4px;border-bottom:1px solid var(--line)}
+li.t.d span{text-decoration:line-through;color:var(--mute)}
+li.t span{flex:1}
+li.t input{accent-color:var(--red);width:17px;height:17px}
+li.t button{background:none;border:0;color:var(--mute);cursor:pointer;font-size:18px}
+li.t button:hover{color:var(--red2)}
+.grid{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:8px;margin-bottom:8px}
+.res{margin-top:22px;padding:18px;border:1px solid var(--line);border-left:3px solid var(--red);border-radius:8px;background:var(--panel);font-size:18px}
+.timer{font-size:64px;font-weight:300;font-variant-numeric:tabular-nums;margin:10px 0 18px}
+.tabs2{display:flex;gap:6px;margin-bottom:18px}
+.tabs2 button{background:var(--panel);border:1px solid var(--line);color:var(--mute);padding:6px 14px;border-radius:20px;font:inherit;cursor:pointer}
+.tabs2 button.on{border-color:var(--red);color:var(--text)}
+.game{display:none;text-align:center}.game.on{display:block}
+canvas{background:#0d0909;border:1px solid var(--line);border-radius:8px;max-width:100%;touch-action:none}
+.score{margin:0 0 10px;color:var(--mute)}.score b{color:var(--text)}
+#b2048{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:min(340px,100%);margin:0 auto;padding:8px;background:var(--panel);border:1px solid var(--line);border-radius:10px;touch-action:none}
+#b2048 div{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:6px;background:#1a1111;font-weight:700;font-size:22px;color:#fff}
+.hp{width:min(340px,100%);height:10px;margin:0 auto 10px;background:#1a1111;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.hp i{display:block;height:100%;width:100%;background:var(--red2);transition:width .15s}
+#cd{cursor:crosshair}
+#lgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:10px;text-align:center}
+#lgrid button{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px;color:var(--text);font:inherit;font-size:12px;cursor:pointer;display:flex;flex-direction:column;gap:6px;align-items:center;transition:transform .15s,border-color .15s,box-shadow .15s}
+#lgrid button:hover{border-color:var(--red);transform:translateY(-2px);box-shadow:0 4px 18px rgba(255,42,42,.2)}
+#lgrid img,#lgrid .ph{width:100%;aspect-ratio:1;border-radius:7px;object-fit:cover;background:#1a1111}
+#lgrid .ph{display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;color:var(--mute)}
+#lgrid span.n{line-height:1.25;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;word-break:break-word}
+#lframe{width:100%;aspect-ratio:16/9;max-height:78vh;background:#000;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+#lframe iframe{width:100%;height:100%;border:0;display:block}
+.hint{margin-top:12px}
+footer{text-align:center;padding:24px 20px 32px;font-size:12px;color:#4a3f3f}
+#secret{cursor:default;user-select:none}
+#back{display:none}
+
+/* Geçiş efekti */
+#fx{position:fixed;inset:0;z-index:99;pointer-events:none;display:none}
+#fx.run{display:block}
+#fx .bar{position:absolute;left:0;width:100%;background:var(--red2);transform:translateX(-101%);animation:bar .8s cubic-bezier(.7,0,.3,1) both}
+#fx .lbl{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:700 clamp(28px,8vw,64px) ui-monospace,"Courier New",monospace;letter-spacing:10px;color:#000;opacity:0;animation:lbl .8s steps(1) both}
+@keyframes bar{0%{transform:translateX(-101%)}42%,58%{transform:translateX(0)}100%{transform:translateX(101%)}}
+@keyframes lbl{0%,40%{opacity:0}45%{opacity:1;transform:translateX(6px)}50%{transform:translateX(-5px)}55%{opacity:1;transform:none}60%,100%{opacity:0}}
+
+/* Oyun modu: ayrı bir site gibi */
+body.gm{--bg:#050000;--panel:#0e0404;--line:#3a0f0f;--red:#ff2a2a;--red2:#ff4d4d;--text:#f0dcdc;--mute:#a07878;
+  font-family:ui-monospace,"Courier New",monospace;
+  background:linear-gradient(rgba(255,42,42,.07) 1px,transparent 1px) 0 0/42px 42px,linear-gradient(90deg,rgba(255,42,42,.07) 1px,transparent 1px) 0 0/42px 42px,radial-gradient(ellipse at 50% -10%,#3a0808,#050000 65%) fixed}
+body.gm::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:50;background:repeating-linear-gradient(0deg,rgba(0,0,0,.28) 0 1px,transparent 1px 3px)}
+body.gm nav,body.gm h2{display:none}
+body.gm #back{display:inline-block}
+body.gm header{border-bottom:1px solid var(--red);box-shadow:0 2px 22px rgba(255,42,42,.28);justify-content:space-between}
+body.gm h1{letter-spacing:7px;font-size:20px;text-shadow:0 0 14px var(--red),2px 0 #00e5ff55,-2px 0 #ff000099;animation:glitch 3.2s infinite}
+body.gm h1 i{box-shadow:0 0 12px var(--red)}
+body.gm canvas,body.gm #b2048{border-color:var(--red);box-shadow:0 0 28px rgba(255,42,42,.32)}
+body.gm .tabs2{justify-content:center}
+body.gm .tabs2 button{font-family:inherit;letter-spacing:2px;text-transform:uppercase}
+body.gm .tabs2 button.on{background:var(--red);color:#000;border-color:var(--red);box-shadow:0 0 14px rgba(255,42,42,.6)}
+body.gm footer{color:#6b3a3a}
+@keyframes glitch{0%,90%,100%{transform:none}92%{transform:translate(3px,-1px)}94%{transform:translate(-4px,1px)}96%{transform:translate(2px,0)}}
+@media(prefers-reduced-motion:reduce){#fx .bar,#fx .lbl,body.gm h1{animation:none!important}}
+@media(max-width:560px){.grid{grid-template-columns:1fr 1fr}.timer{font-size:48px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <h1 id="logo"><i></i><span id="logoTxt">Ders Notları</span></h1>
+  <button class="btn ghost" id="back">← Çık</button>
+  <nav id="nav">
+    <button data-t="notes" class="on">Notlar</button>
+    <button data-t="todo">Görevler</button>
+    <button data-t="avg">Ortalama</button>
+    <button data-t="focus">Odak</button>
+  </nav>
+</header>
+<main>
+
+<section id="notes" class="on">
+  <h2>Notlar</h2>
+  <textarea id="noteArea" placeholder="Ders notlarını buraya yaz. Otomatik kaydedilir."></textarea>
+  <p class="mute" id="noteInfo" style="margin-top:8px"></p>
+</section>
+
+<section id="todo">
+  <h2>Görevler</h2>
+  <div class="row"><input type="text" id="todoIn" placeholder="Ödev, sınav, proje…"><button class="btn" id="todoAdd">Ekle</button></div>
+  <ul id="todoList"></ul>
+</section>
+
+<section id="avg">
+  <h2>Ağırlıklı not ortalaması</h2>
+  <div id="avgRows"></div>
+  <div class="row" style="margin-top:12px"><button class="btn ghost" id="avgAdd">Ders ekle</button><button class="btn" id="avgCalc">Hesapla</button></div>
+  <div class="res" id="avgRes">Ortalama: –</div>
+</section>
+
+<section id="focus">
+  <h2>Odak sayacı</h2>
+  <p class="mute">25 dakika çalış, 5 dakika dinlen.</p>
+  <div class="timer" id="tm">25:00</div>
+  <div class="row"><button class="btn" id="tmGo">Başlat</button><button class="btn ghost" id="tmReset">Sıfırla</button><button class="btn ghost" id="tmMode">Mola süresi</button></div>
+</section>
+
+<section id="games">
+  <h2>OYUNLAR</h2>
+  <div class="tabs2" id="gtabs">
+    <button data-g="g2048" class="on">2048</button>
+    <button data-g="gsnake">Yılan</button>
+    <button data-g="gflap">Flappy</button>
+    <button data-g="gdov">Dövme</button>
+    <button data-g="gall">Tüm Oyunlar</button>
+  </div>
+
+  <div class="game on" id="g2048">
+    <p class="score">Skor <b id="s2048">0</b> · En iyi <b id="h2048">0</b></p>
+    <div id="b2048"></div>
+    <p class="mute hint">Ok tuşları veya kaydırma.</p>
+    <button class="btn ghost" style="margin-top:10px" id="r2048">Yeniden başla</button>
+  </div>
+
+  <div class="game" id="gsnake">
+    <p class="score">Skor <b id="ssnake">0</b> · En iyi <b id="hsnake">0</b></p>
+    <canvas id="cs" width="360" height="360"></canvas>
+    <p class="mute hint">Ok tuşları / WASD veya kaydırma. Başlamak için bir yöne bas.</p>
+  </div>
+
+  <div class="game" id="gflap">
+    <p class="score">Skor <b id="sflap">0</b> · En iyi <b id="hflap">0</b></p>
+    <canvas id="cf" width="320" height="460"></canvas>
+    <p class="mute hint">Boşluk tuşu veya dokunma ile zıpla.</p>
+  </div>
+
+  <div class="game" id="gdov">
+    <div class="row" style="justify-content:center;margin-bottom:10px"><input type="text" id="dname" maxlength="20" placeholder="Bir isim yaz…" autocomplete="off" style="max-width:260px;text-align:center"></div>
+    <div class="tabs2" id="dtools" style="justify-content:center;flex-wrap:wrap"></div>
+    <p class="score">Vuruş <b id="sdov">0</b> · <span id="dmsg">Bir alet seç, adama vur!</span></p>
+    <div class="hp"><i id="dhp"></i></div>
+    <canvas id="cd" width="340" height="500"></canvas>
+    <p class="mute hint">Aleti seç, adamın üstüne tıkla / dokun. Kafaya vurmak daha çok acıtır.</p>
+    <button class="btn ghost" style="margin-top:10px" id="rdov">Adamı iyileştir</button>
+  </div>
+
+  <div class="game" id="gall">
+    <div id="lList">
+      <input type="text" id="lsearch" placeholder="Oyun ara…" autocomplete="off" style="max-width:320px;margin:0 auto 10px;text-align:center">
+      <p class="score"><b id="lcount">0</b> oyun</p>
+      <div id="lgrid"></div>
+    </div>
+    <div id="lPlay" style="display:none">
+      <div class="row" style="justify-content:center"><button class="btn ghost" id="lback">← Listeye dön</button><button class="btn ghost" id="lfull">Tam ekran</button></div>
+      <p class="score"><b id="ltitle"></b></p>
+      <div id="lframe"></div>
+    </div>
+  </div>
+  <p class="mute" style="margin-top:18px;text-align:center">Esc: hızlıca Notlar sekmesine dön.</p>
+</section>
+
+</main>
+<div id="fx" aria-hidden="true"></div>
+<footer><span id="secret" role="button" tabindex="0">© 2026 Başkurt</span></footer>
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const store={get(k,d){try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+let tab='notes',game='g2048';
+
+/* Sekmeler */
+function show(t){
+  tab=t;
+  $$('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+  $$('main>section').forEach(s=>s.classList.toggle('on',s.id===t));
+  syncGame();
+}
+$('#nav').onclick=e=>{if(e.target.dataset.t)show(e.target.dataset.t)};
+let busy=false;
+function fx(label,cb){
+  if(busy)return;busy=true;
+  const o=$('#fx'),n=8;o.innerHTML='';
+  for(let i=0;i<n;i++){const b=document.createElement('div');b.className='bar';b.style.top=(i*100/n)+'%';b.style.height=(100/n+.5)+'%';b.style.animationDelay=(i*45)+'ms';o.append(b)}
+  const l=document.createElement('div');l.className='lbl';l.textContent=label;l.style.animationDelay='180ms';o.append(l);
+  o.classList.add('run');
+  setTimeout(cb,420);
+  setTimeout(()=>{o.classList.remove('run');busy=false},1250);
+}
+function enterGames(){fx('OYUNLAR',()=>{document.body.classList.add('gm');$('#logoTxt').textContent='OYUNLAR';show('games');scrollTo(0,0)})}
+function leaveGames(){fx('',()=>{document.body.classList.remove('gm');$('#logoTxt').textContent='Ders Notları';show('notes');scrollTo(0,0)})}
+const inGm=()=>document.body.classList.contains('gm');
+addEventListener('keydown',e=>{if(e.key==='Escape'){inGm()?leaveGames():show('notes')}});
+$('#secret').onclick=()=>inGm()?leaveGames():enterGames();
+$('#secret').onkeydown=e=>{if(e.key==='Enter')$('#secret').click()};
+$('#back').onclick=leaveGames;
+
+/* Notlar */
+const na=$('#noteArea');na.value=store.get('note','');
+function noteInfo(){$('#noteInfo').textContent=na.value.trim()?na.value.trim().split(/\s+/).length+' kelime':''}
+na.oninput=()=>{store.set('note',na.value);noteInfo()};noteInfo();
+
+/* Görevler */
+let todos=store.get('todos',[]);
+function drawTodos(){
+  const ul=$('#todoList');ul.innerHTML='';
+  if(!todos.length){ul.innerHTML='<li class="mute" style="padding:10px 4px">Henüz görev yok. Yukarıdan bir tane ekle.</li>';return}
+  todos.forEach((t,i)=>{
+    const li=document.createElement('li');li.className='t'+(t.d?' d':'');
+    const c=document.createElement('input');c.type='checkbox';c.checked=t.d;c.onchange=()=>{t.d=c.checked;save()};
+    const s=document.createElement('span');s.textContent=t.x;
+    const x=document.createElement('button');x.textContent='×';x.setAttribute('aria-label','Sil');x.onclick=()=>{todos.splice(i,1);save()};
+    li.append(c,s,x);ul.append(li);
+  });
+}
+function save(){store.set('todos',todos);drawTodos()}
+function addTodo(){const v=$('#todoIn').value.trim();if(!v)return;todos.push({x:v,d:false});$('#todoIn').value='';save()}
+$('#todoAdd').onclick=addTodo;$('#todoIn').onkeydown=e=>{if(e.key==='Enter')addTodo()};drawTodos();
+
+/* Ortalama */
+function avgRow(n='',g='',w=''){
+  const d=document.createElement('div');d.className='grid';
+  d.innerHTML='<input type="text" placeholder="Ders adı"><input type="number" min="0" max="100" placeholder="Not"><input type="number" min="0" placeholder="Ağırlık"><button class="btn ghost" aria-label="Sil">×</button>';
+  const i=d.querySelectorAll('input');i[0].value=n;i[1].value=g;i[2].value=w;
+  d.querySelector('button').onclick=()=>d.remove();$('#avgRows').append(d);
+}
+avgRow();avgRow();
+$('#avgAdd').onclick=()=>avgRow();
+$('#avgCalc').onclick=()=>{
+  let sum=0,wt=0;
+  $$('#avgRows .grid').forEach(r=>{const i=r.querySelectorAll('input'),g=parseFloat(i[1].value),w=parseFloat(i[2].value)||1;if(!isNaN(g)){sum+=g*w;wt+=w}});
+  $('#avgRes').textContent=wt?'Ortalama: '+(sum/wt).toFixed(2):'Ortalama: – (en az bir not gir)';
+};
+
+/* Odak sayacı */
+let work=true,left=1500,iv=null;
+function drawTm(){const m=String(Math.floor(left/60)).padStart(2,'0'),s=String(left%60).padStart(2,'0');$('#tm').textContent=m+':'+s;document.title=iv?m+':'+s+' · Ders Notları':'Ders Notları'}
+$('#tmGo').onclick=()=>{
+  if(iv){clearInterval(iv);iv=null;$('#tmGo').textContent='Devam';drawTm();return}
+  $('#tmGo').textContent='Duraklat';
+  iv=setInterval(()=>{left--;if(left<=0){clearInterval(iv);iv=null;work=!work;left=work?1500:300;$('#tmGo').textContent='Başlat'}drawTm()},1000);
+};
+$('#tmReset').onclick=()=>{clearInterval(iv);iv=null;left=work?1500:300;$('#tmGo').textContent='Başlat';drawTm()};
+$('#tmMode').onclick=()=>{work=!work;$('#tmMode').textContent=work?'Mola süresi':'Çalışma süresi';$('#tmReset').click()};
+
+/* Oyun sekmeleri */
+$('#gtabs').onclick=e=>{if(!e.target.dataset.g)return;game=e.target.dataset.g;
+  $$('#gtabs button').forEach(b=>b.classList.toggle('on',b===e.target));
+  $$('.game').forEach(g=>g.classList.toggle('on',g.id===game));syncGame()};
+function syncGame(){
+  snake.stop();flap.stop();dov.stop();if(typeof lib!=='undefined'&&lib&&game!=='gall')lib.close();
+  if(tab!=='games')return;
+  if(game==='gsnake')snake.reset();
+  if(game==='gflap')flap.reset();
+  if(game==='gdov')dov.reset();
+}
+function best(k,v){const b=Math.max(store.get('hi'+k,0),v);store.set('hi'+k,b);return b}
+
+/* Kaydırma */
+function swipe(el,fn){let x,y;
+  el.addEventListener('touchstart',e=>{x=e.touches[0].clientX;y=e.touches[0].clientY},{passive:true});
+  el.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-x,dy=e.changedTouches[0].clientY-y;
+    if(Math.max(Math.abs(dx),Math.abs(dy))<24)return;
+    fn(Math.abs(dx)>Math.abs(dy)?(dx>0?'R':'L'):(dy>0?'D':'U'))});
+}
+
+/* ===== 2048 ===== */
+const g48={b:[],s:0,over:false};
+const col={0:'#1a1111',2:'#3a2222',4:'#4d2626',8:'#7a2323',16:'#8f1f1f',32:'#a31c1c',64:'#b82222',128:'#c42b2b',256:'#d13a3a',512:'#de4b4b',1024:'#eb5d5d',2048:'#ff7676'};
+function new48(){g48.b=Array.from({length:4},()=>[0,0,0,0]);g48.s=0;g48.over=false;add48();add48();draw48()}
+function add48(){const e=[];g48.b.forEach((r,i)=>r.forEach((v,j)=>{if(!v)e.push([i,j])}));if(!e.length)return;const[i,j]=e[Math.random()*e.length|0];g48.b[i][j]=Math.random()<.9?2:4}
+function slide(l){const r=l.filter(x=>x);for(let i=0;i<r.length-1;i++)if(r[i]===r[i+1]){r[i]*=2;g48.s+=r[i];r.splice(i+1,1)}while(r.length<4)r.push(0);return r}
+function move48(d){
+  if(g48.over)return;
+  const map=(i,j)=>d==='L'?[i,j]:d==='R'?[i,3-j]:d==='U'?[j,i]:[3-j,i];
+  let moved=false;
+  for(let i=0;i<4;i++){
+    const line=[0,1,2,3].map(j=>{const[r,c]=map(i,j);return g48.b[r][c]});
+    const n=slide(line);
+    n.forEach((v,j)=>{const[r,c]=map(i,j);if(g48.b[r][c]!==v)moved=true;g48.b[r][c]=v});
+  }
+  if(moved){add48();draw48()}
+  if(!can48()){g48.over=true;draw48()}
+}
+function can48(){const b=g48.b;for(let i=0;i<4;i++)for(let j=0;j<4;j++){if(!b[i][j])return true;if(j<3&&b[i][j]===b[i][j+1])return true;if(i<3&&b[i][j]===b[i+1][j])return true}return false}
+function draw48(){
+  const el=$('#b2048');el.innerHTML='';
+  g48.b.flat().forEach(v=>{const d=document.createElement('div');d.textContent=v||'';d.style.background=col[v]||'#ff8a8a';if(v>=1024)d.style.fontSize='17px';el.append(d)});
+  $('#s2048').textContent=g48.s;$('#h2048').textContent=best('2048',g48.s);
+  if(g48.over)el.style.opacity=.55;else el.style.opacity=1;
+}
+$('#r2048').onclick=new48;
+swipe($('#b2048'),move48);
+new48();
+
+/* ===== Yılan ===== */
+const snake=(()=>{
+  const c=$('#cs'),x=c.getContext('2d'),N=18,S=c.width/N;
+  let sn,dir,nd,food,sc,t=null,started;
+  const hi=()=>$('#hsnake').textContent=best('snake',sc);
+  function reset(){stop();sn=[[9,9],[8,9],[7,9]];dir=nd=[1,0];sc=0;started=false;put();$('#ssnake').textContent=0;hi();draw();t=null}
+  function put(){do{food=[Math.random()*N|0,Math.random()*N|0]}while(sn.some(p=>p[0]===food[0]&&p[1]===food[1]))}
+  function stop(){clearInterval(t);t=null}
+  function start(){if(!t)t=setInterval(step,110)}
+  function step(){
+    dir=nd;const h=[sn[0][0]+dir[0],sn[0][1]+dir[1]];
+    if(h[0]<0||h[1]<0||h[0]>=N||h[1]>=N||sn.some(p=>p[0]===h[0]&&p[1]===h[1])){stop();draw(true);hi();return}
+    sn.unshift(h);
+    if(h[0]===food[0]&&h[1]===food[1]){sc++;$('#ssnake').textContent=sc;put()}else sn.pop();
+    draw();
+  }
+  function draw(dead){
+    x.fillStyle='#0d0909';x.fillRect(0,0,c.width,c.height);
+    x.fillStyle='#e03a3a';x.beginPath();x.arc(food[0]*S+S/2,food[1]*S+S/2,S/3,0,7);x.fill();
+    sn.forEach((p,i)=>{x.fillStyle=dead?'#4a1b1b':i?'#8f1f1f':'#d9d0d0';x.fillRect(p[0]*S+1,p[1]*S+1,S-2,S-2)});
+    if(dead){x.fillStyle='#d9d0d0';x.font='16px system-ui';x.textAlign='center';x.fillText('Bitti — tekrar için bir yöne bas',c.width/2,c.height/2)}
+  }
+  function turn(d){
+    if(tab!=='games'||game!=='gsnake')return;
+    const v={U:[0,-1],D:[0,1],L:[-1,0],R:[1,0]}[d];
+    if(!t&&started===true&&sn.length&&dir&&!t){/* oyun bitti */}
+    if(!t){if(started)reset();started=true;start()}
+    if(v[0]!==-dir[0]||v[1]!==-dir[1])nd=v;
+  }
+  swipe(c,turn);
+  c.addEventListener('click',()=>{if(!t)turn('R')});
+  return{reset,stop,turn};
+})();
+
+/* ===== Flappy ===== */
+const flap=(()=>{
+  const c=$('#cf'),x=c.getContext('2d'),W=c.width,H=c.height,GAP=130;
+  let y,v,pipes,sc,raf,state,fr;
+  function reset(){stop();y=H/2;v=0;pipes=[];sc=0;fr=0;state='ready';$('#sflap').textContent=0;$('#hflap').textContent=store.get('hiflap',0);loop()}
+  function stop(){cancelAnimationFrame(raf);raf=null}
+  function jump(){
+    if(tab!=='games'||game!=='gflap')return;
+    if(state==='dead'){reset();return}
+    state='play';v=-6.2;
+  }
+  function loop(){
+    if(state==='play'){
+      v+=.38;y+=v;fr++;
+      if(fr%90===1)pipes.push({x:W,top:60+Math.random()*(H-GAP-120),ok:false});
+      pipes.forEach(p=>p.x-=2.2);
+      pipes=pipes.filter(p=>p.x>-54);
+      pipes.forEach(p=>{
+        if(!p.ok&&p.x+50<70){p.ok=true;sc++;$('#sflap').textContent=sc}
+        if(70+12>p.x&&70-12<p.x+50&&(y-12<p.top||y+12>p.top+GAP))die();
+      });
+      if(y>H-12||y<-20)die();
+    }else if(state==='ready'){y=H/2+Math.sin(Date.now()/250)*6}
+    draw();raf=requestAnimationFrame(loop);
+  }
+  function die(){state='dead';$('#hflap').textContent=best('flap',sc)}
+  function draw(){
+    x.fillStyle='#0d0909';x.fillRect(0,0,W,H);
+    x.fillStyle='#8f1f1f';
+    pipes.forEach(p=>{x.fillRect(p.x,0,50,p.top);x.fillRect(p.x,p.top+GAP,50,H);});
+    x.fillStyle='#e03a3a';x.beginPath();x.arc(70,y,12,0,7);x.fill();
+    x.fillStyle='#d9d0d0';x.beginPath();x.arc(74,y-3,3,0,7);x.fill();
+    x.font='15px system-ui';x.textAlign='center';
+    if(state==='ready')x.fillText('Başlamak için dokun veya boşluk',W/2,H/2+60);
+    if(state==='dead')x.fillText('Bitti — tekrar için dokun',W/2,H/2+60);
+  }
+  c.addEventListener('pointerdown',e=>{e.preventDefault();jump()});
+  return{reset,stop,jump};
+})();
+
+
+/* ===== Dövme ===== */
+const dov=(()=>{
+  const c=$('#cd'),x=c.getContext('2d'),W=c.width,H=c.height,G=H-70,CX=W/2;
+  const TOOLS=[
+    {n:'Yumruk',e:'👊',d:6,p:.05,t:['PAT!','PÜF!','BAM!']},
+    {n:'Beyzbol sopası',e:'🏏',d:14,p:.13,t:['TAK!','BAM!','GÜM!']},
+    {n:'Tava',e:'🍳',d:10,p:.1,t:['TANG!','ÇINNG!','TONG!']},
+    {n:'Terlik',e:'🥿',d:5,p:.06,t:['ŞAP!','ŞAK!','PAT!']},
+    {n:'Tokmak',e:'🔨',d:18,p:.16,t:['GÜM!','BOOM!','DANG!']}
+  ];
+  const TYPES={
+    normal:{s:1,sh:42,wa:32,lw:9,aw:8,hr:24,dm:1,sw:1},
+    huseyin:{s:1.05,sh:86,wa:50,lw:18,aw:17,hr:22,dm:.45,sw:.5},
+    samed:{s:1.65,sh:20,wa:14,lw:4,aw:3.5,hr:17,dm:1.6,sw:1.4}
+  };
+  const MSG={huseyin:'💪 Vay be, bu adam taş gibi!',samed:'🦴 Aman dikkat, kırılacak…'};
+  let tool=1,type='normal',ang=0,vel=0,hp=100,ko=false,koDir=1,hurt=0,hits=0,morph=1,t=0,raf=null;
+  let marks=[],parts=[],texts=[],swings=[];
+  const tb=$('#dtools');
+  TOOLS.forEach((o,i)=>{const b=document.createElement('button');b.textContent=o.e+' '+o.n;b.dataset.i=i;if(i===tool)b.className='on';tb.appendChild(b)});
+  tb.onclick=e=>{const i=e.target.dataset.i;if(i==null)return;tool=+i;$$('#dtools button').forEach(b=>b.classList.toggle('on',b===e.target))};
+
+  function typeOf(n){
+    n=n.toLocaleLowerCase('tr').replace(/ü/g,'u').replace(/ı/g,'i').replace(/\s+/g,'');
+    if(n.includes('huseyin'))return'huseyin';
+    if(n.includes('abdulsamed'))return'samed';
+    return'normal';
+  }
+  function dims(){
+    const d=TYPES[type],s=d.s,legL=100*s,torL=95*s,neck=6*s;
+    const hipY=-legL,shY=hipY-torL,hcy=shY-neck-d.hr;
+    return{...d,legL,torL,neck,hipY,shY,hcy};
+  }
+  function setHp(){
+    $('#dhp').style.width=Math.max(0,hp)+'%';
+    $('#dhp').style.background=hp>50?'#4caf50':hp>25?'#e0a030':'#e03a3a';
+  }
+  function reset(){
+    stop();ang=0;vel=0;hp=100;ko=false;hurt=0;hits=0;marks=[];parts=[];texts=[];swings=[];morph=1;
+    $('#sdov').textContent=0;$('#dmsg').textContent=MSG[type]||'Bir alet seç, adama vur!';setHp();loop();
+  }
+  function stop(){cancelAnimationFrame(raf);raf=null}
+  function heal(){ang=0;vel=0;hp=100;ko=false;hurt=0;marks=[];$('#dmsg').textContent=MSG[type]||'Ayağa kalktı!';setHp()}
+  $('#rdov').onclick=heal;
+  $('#dname').addEventListener('input',e=>{
+    const nt=typeOf(e.target.value);
+    if(nt!==type){type=nt;morph=.55;ko=false;ang=0;vel=0;hp=100;setHp();$('#dmsg').textContent=MSG[type]||'Bir alet seç, adama vur!';
+      for(let i=0;i<14;i++)parts.push({x:CX,y:G-120,vx:(Math.random()-.5)*7,vy:-Math.random()*6,l:30,c:'#ffd54a',ch:'✦'})}
+  });
+
+  function pick(px,py){
+    const d=dims(),dx=px-CX,dy=py-G,ca=Math.cos(ang),sa=Math.sin(ang);
+    const lx=dx*ca+dy*sa,ly=-dx*sa+dy*ca;
+    const k=1/morph;const X=lx*k,Y=ly*k;
+    if(Math.hypot(X,Y-d.hcy)<=d.hr+8)return{z:'h',lx:X,ly:Y,u:Math.max(-.8,Math.min(.8,X/d.hr)),v:Math.max(-.8,Math.min(.8,(Y-d.hcy)/d.hr))};
+    if(Y>=d.shY-4&&Y<=d.hipY+6&&Math.abs(X)<=d.sh/2+d.aw*1.6)return{z:'b',lx:X,ly:Y,u:Math.max(-.4,Math.min(.4,X/d.sh)),v:(Y-d.shY)/d.torL};
+    if(Y>d.hipY&&Y<=4&&Math.abs(X)<=d.wa*.28+d.lw+14)return{z:'l',lx:X,ly:Y};
+    return null;
+  }
+  function hit(e){
+    if(tab!=='games'||game!=='gdov')return;
+    const r=c.getBoundingClientRect(),px=(e.clientX-r.left)*W/r.width,py=(e.clientY-r.top)*H/r.height;
+    const T=TOOLS[tool],D=TYPES[type];
+    swings.push({x:px,y:py,e:T.e,l:0});
+    if(ko)return;
+    const h=pick(px,py);
+    if(!h)return;
+    const zm=h.z==='h'?1.6:h.z==='l'?.7:1;
+    const dmg=T.d*zm*D.dm*(.8+Math.random()*.4);
+    hp-=dmg;hits++;hurt=18;
+    const dir=h.lx>0?-1:1;
+    vel+=dir*T.p*D.sw*(h.z==='h'?1.3:1);
+    if(h.z!=='l'){marks.push({z:h.z,u:h.u,v:h.v,r:3+Math.random()*3});if(marks.length>24)marks.shift()}
+    texts.push({s:h.z==='h'&&T.d>=10?'KAFA! '+T.t[0]:T.t[Math.floor(Math.random()*T.t.length)],x:px,y:py-10,l:0,c:T.d>=14?'#ff4d4d':'#ffd54a'});
+    for(let i=0;i<6;i++)parts.push({x:px,y:py,vx:(Math.random()-.5)*6,vy:-Math.random()*5,l:26,c:'#ffd54a',ch:'✦'});
+    $('#sdov').textContent=hits;setHp();
+    if(hp<=0){ko=true;koDir=dir;$('#dmsg').textContent='K.O.! 💫 Yerde kaldı…'}
+  }
+  c.addEventListener('pointerdown',e=>{e.preventDefault();hit(e)});
+
+  function limb(a,b,w,col){x.strokeStyle=col;x.lineWidth=w;x.lineCap='round';x.beginPath();x.moveTo(a[0],a[1]);x.lineTo(b[0],b[1]);x.stroke()}
+  function drawMarks(zone,fn){x.fillStyle='rgba(130,60,170,.55)';marks.forEach(m=>{if(m.z!==zone)return;const[px,py]=fn(m);x.beginPath();x.arc(px,py,m.r,0,7);x.fill()})}
+
+  function figure(){
+    const d=dims(),SKIN='#e8b894',PANTS='#2d2d44';
+    const shirt=type==='samed'?'#6b8e23':'#3b6ea5';
+    x.save();x.translate(CX,G);x.rotate(ang);x.scale(morph,morph);
+    const bob=ko?0:Math.sin(t/25)*1.2;x.translate(0,bob);
+    // bacaklar
+    const hw=d.wa*.28;
+    [-1,1].forEach(sd=>{
+      const hp_=[sd*hw,d.hipY],kn=[sd*(hw+3),d.hipY+d.legL*.5],ft=[sd*(hw+10),0];
+      limb(hp_,kn,d.lw,type==='huseyin'?SKIN:PANTS);limb(kn,ft,d.lw,type==='huseyin'?SKIN:PANTS);
+      limb([ft[0],-2],[ft[0]+sd*10*d.s,-2],d.lw*.8+2,'#111');
+    });
+    // gövde
+    x.fillStyle=type==='huseyin'?SKIN:shirt;
+    x.beginPath();x.moveTo(-d.sh/2,d.shY);x.lineTo(d.sh/2,d.shY);x.lineTo(d.wa/2,d.hipY);x.lineTo(-d.wa/2,d.hipY);x.closePath();x.fill();
+    if(type==='huseyin'){
+      x.strokeStyle='rgba(120,60,30,.6)';x.lineWidth=2;x.beginPath();
+      x.moveTo(0,d.shY+8);x.lineTo(0,d.hipY-8);
+      x.moveTo(-d.sh*.4,d.shY+22);x.quadraticCurveTo(-d.sh*.2,d.shY+36,0,d.shY+24);x.quadraticCurveTo(d.sh*.2,d.shY+36,d.sh*.4,d.shY+22);
+      for(let i=1;i<=3;i++){const y=d.shY+38+i*15;x.moveTo(-9,y);x.lineTo(9,y)}
+      x.stroke();
+      x.fillStyle='#c0392b';x.fillRect(-d.wa/2-2,d.hipY-16,d.wa+4,20);
+    }else{x.fillStyle=PANTS;x.fillRect(-d.wa/2,d.hipY-4,d.wa,8)}
+    drawMarks('b',m=>[m.u*d.sh,d.shY+m.v*d.torL]);
+    // kollar
+    const fl=Math.max(-1,Math.min(1,-vel*3));
+    [-1,1].forEach(sd=>{
+      const sx=sd*(d.sh/2-d.aw*.2),sy=d.shY+d.aw*.6;
+      const a=sd*.18+fl*.55*(ko?0:1)+(ko?sd*.3:0),u=45*d.s,f=45*d.s;
+      const ex=sx+Math.sin(a)*u,ey=sy+Math.cos(a)*u,a2=a*1.5,hx=ex+Math.sin(a2)*f,hy=ey+Math.cos(a2)*f;
+      limb([sx,sy],[ex,ey],d.aw,SKIN);limb([ex,ey],[hx,hy],d.aw*.9,SKIN);
+      if(type==='huseyin'){x.fillStyle='#f0c8a4';x.beginPath();x.arc((sx+ex)/2+sd*3,(sy+ey)/2,d.aw*.62,0,7);x.fill()}
+      x.fillStyle=SKIN;x.beginPath();x.arc(hx,hy,d.aw*(type==='huseyin'?.7:.65),0,7);x.fill();
+    });
+    // kafa
+    x.save();x.translate(0,d.shY-d.neck);x.rotate(ang*.8+Math.sin(t/9)*hurt*.003);
+    limb([0,d.neck+2],[0,-4],Math.max(4,d.aw*.9),SKIN);
+    const hr=d.hr,cy=-hr;
+    x.fillStyle=SKIN;x.beginPath();x.arc(0,cy,hr,0,7);x.fill();
+    x.fillStyle='#2a1a10';
+    if(type==='samed'){x.lineWidth=1.5;x.strokeStyle='#2a1a10';x.beginPath();[-5,0,5].forEach(o=>{x.moveTo(o,cy-hr);x.lineTo(o*1.8,cy-hr-9)});x.stroke()}
+    else{x.beginPath();x.arc(0,cy,hr+1,Math.PI*1.08,Math.PI*1.92);x.fill()}
+    const ey=cy-hr*.1,ex=hr*.4;x.strokeStyle='#111';x.fillStyle='#111';x.lineWidth=2;x.lineCap='round';
+    if(ko){[-1,1].forEach(sd=>{x.beginPath();x.moveTo(sd*ex-4,ey-4);x.lineTo(sd*ex+4,ey+4);x.moveTo(sd*ex+4,ey-4);x.lineTo(sd*ex-4,ey+4);x.stroke()})}
+    else if(hurt>0){[-1,1].forEach(sd=>{x.beginPath();x.moveTo(sd*ex-sd*4,ey-4);x.lineTo(sd*ex+sd*3,ey);x.lineTo(sd*ex-sd*4,ey+4);x.stroke()})}
+    else{[-1,1].forEach(sd=>{x.beginPath();x.arc(sd*ex,ey,hr*.1+1,0,7);x.fill()})}
+    if(type==='huseyin'&&!ko){x.beginPath();x.moveTo(-ex-6,ey-8);x.lineTo(-ex+5,ey-4);x.moveTo(ex+6,ey-8);x.lineTo(ex-5,ey-4);x.stroke()}
+    if(type==='samed'){x.strokeStyle='#ccc';x.lineWidth=1.3;[-1,1].forEach(sd=>{x.beginPath();x.arc(sd*ex,ey,hr*.3,0,7);x.stroke()});x.beginPath();x.moveTo(-ex+hr*.3,ey);x.lineTo(ex-hr*.3,ey);x.stroke();x.strokeStyle='#111'}
+    const my=cy+hr*.5;x.lineWidth=2;x.beginPath();
+    if(ko){x.moveTo(-6,my);x.lineTo(6,my);x.stroke();x.fillStyle='#e0506a';x.beginPath();x.arc(4,my+4,3,0,Math.PI);x.fill()}
+    else if(hurt>0){x.arc(0,my+2,hr*.2,0,7);x.stroke()}
+    else{x.arc(0,my-3,hr*.35,.2,Math.PI-.2);x.stroke()}
+    drawMarks('h',m=>[m.u*hr,cy+m.v*hr]);
+    x.restore();
+    x.restore();
+  }
+
+  function loop(){
+    t++;
+    if(ko){ang+=(koDir*1.5-ang)*.08;vel=0}
+    else{vel+=-ang*.07;vel*=.93;ang+=vel;ang=Math.max(-.7,Math.min(.7,ang))}
+    if(hurt>0)hurt--;
+    morph+=(1-morph)*.14;
+    x.fillStyle='#0d0909';x.fillRect(0,0,W,H);
+    x.strokeStyle='#3a0f0f';x.lineWidth=2;x.beginPath();x.moveTo(20,G+2);x.lineTo(W-20,G+2);x.stroke();
+    x.fillStyle='rgba(0,0,0,.35)';x.beginPath();x.ellipse(CX,G+4,60*Math.max(1,TYPES[type].sh/50),7,0,0,7);x.fill();
+    figure();
+    // isim
+    const nm=$('#dname').value.trim()||'Adsız';
+    x.fillStyle='#d9d0d0';x.font='bold 18px system-ui';x.textAlign='center';x.fillText(nm,CX,H-26);
+    // efektler
+    parts=parts.filter(p=>p.l-->0);parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.25;x.globalAlpha=Math.max(0,p.l/26);x.fillStyle=p.c;x.font='16px system-ui';x.fillText(p.ch,p.x,p.y)});x.globalAlpha=1;
+    swings=swings.filter(s=>s.l++<14);swings.forEach(s=>{x.save();x.translate(s.x,s.y);x.rotate(-1.3+s.l/14*2.6);x.globalAlpha=1-s.l/16;x.font='46px system-ui';x.fillText(s.e,0,-18);x.restore()});x.globalAlpha=1;
+    texts=texts.filter(q=>q.l++<34);texts.forEach(q=>{x.globalAlpha=1-q.l/34;x.fillStyle=q.c;x.font='bold 22px ui-monospace,monospace';x.fillText(q.s,q.x,q.y-q.l*1.3)});x.globalAlpha=1;
+    if(ko){x.fillStyle='#ff4d4d';x.font='bold 54px ui-monospace,monospace';x.fillText('K.O.',CX,90)}
+    raf=requestAnimationFrame(loop);
+  }
+  return{reset,stop};
+})();
+
+
+/* ===== Oyun kütüphanesi (games.json) ===== */
+var lib=(function(){
+  /* Gömülü yedek veri: [ad, oyun_url, ikon_url]. Aynı klasörde games.json varsa o okunur. */
+  var FALLBACK=[["Retro Bowl","https://hfmanor.com/retro-bowl","https://hfmanor.com/image/retro-bowl"],["Subway Surfers","https://hfmanor.com/subway-surfers","https://hfmanor.com/image/subway-surfers"],["Basketball Stars","https://hfmanor.com/basketball-stars","https://hfmanor.com/image/basketball-stars"],["Basket Random","https://hfmanor.com/basket-random","https://hfmanor.com/image/basket-random"],["Stickman Hook","https://hfmanor.com/stickman-hook","https://hfmanor.com/image/stickman-hook"],["Smash Karts","https://hfmanor.com/Smash Karts","https://hfmanor.com/image/Smash Karts"],["Cookie Clicker","https://hfmanor.com/cookie-clicker","https://hfmanor.com/image/cookie-clicker"],["Moto X3M","https://hfmanor.com/moto-X3M","https://hfmanor.com/image/moto-X3M"],["Bitlife","https://hfmanor.com/bitlife","https://hfmanor.com/image/bitlife"],["Superhot","https://hfmanor.com/superhot","https://hfmanor.com/image/superhot"],["1v1lol","https://hfmanor.com/1v1lol","https://hfmanor.com/image/1v1lol"],["Roblox","https://hfmanor.com/roblox","https://hfmanor.com/image/roblox"],["Among Us","https://hfmanor.com/among-us","https://hfmanor.com/image/among-us"],["Snow Rider 3D","https://games.mathpapers.org/snowrider3d/index.html","https://hfmanor.com/image/Snow Rider 3D"],["Minecraft","https://hfmanor.com/Minecraft","https://hfmanor.com/image/Minecraft"],["Soundboard","https://hfmanor.com/soundboard","https://hfmanor.com/image/soundboard"],["Madalin Stunt Cars 2","https://hfmanor.com/madalin-stunt-cars-2","https://hfmanor.com/image/madalin-stunt-cars-2"],["Deepest Sword","https://hfmanor.com/deepest-sword","https://hfmanor.com/image/deepest-sword"],["Soccer Skills","https://hfmanor.com/soccer-skills","https://hfmanor.com/image/soccer-skills"],["Javascript Snake","https://hfmanor.com/javascript-snake","https://hfmanor.com/image/javascript-snake"],["Basketbros Io","https://hfmanor.com/basketbros-io","https://hfmanor.com/image/basketbros-io"],["Slitherio","https://hfmanor.com/slitherio","https://hfmanor.com/image/slitherio"],["Fortnite","https://hfmanor.com/fortnite","https://hfmanor.com/image/fortnite"],["Slope 2","https://hfmanor.com/slope-2","https://hfmanor.com/image/slope-2"],["Madalin Stunt Cars 3","https://hfmanor.com/madalin-stunt-cars-3","https://hfmanor.com/image/madalin-stunt-cars-3"],["Geodash","https://hfmanor.com/geodash","https://hfmanor.com/image/geodash"],["Stick Duel Battle","https://hfmanor.com/stick-duel-battle","https://hfmanor.com/image/stick-duel-battle"],["Getaway Shootout","https://hfmanor.com/getaway-shootout","https://hfmanor.com/image/getaway-shootout"],["Cluster Rush","https://hfmanor.com/cluster-rush","https://hfmanor.com/image/cluster-rush"],["Tunnel Rush","https://hfmanor.com/tunnel-rush","https://hfmanor.com/image/tunnel-rush"],["Tiny Fishing","https://hfmanor.com/tiny-fishing","https://hfmanor.com/image/tiny-fishing"],["Pixel Gun Survival","https://hfmanor.com/pixel-gun-survival","https://hfmanor.com/image/pixel-gun-survival"],["Aquapark Slides","https://hfmanor.com/aquapark-slides","https://hfmanor.com/image/aquapark-slides"],["Getting Over It","https://hfmanor.com/getting-over-it","https://hfmanor.com/image/getting-over-it"],["Rocket League","https://hfmanor.com/Rocket-League","https://hfmanor.com/image/Rocket-League"],["Doodle Jump","https://hfmanor.com/doodle-jump","https://hfmanor.com/image/doodle-jump"],["Merge Round Racers","https://hfmanor.com/merge-round-racers","https://hfmanor.com/image/merge-round-racers"],["Bloxors","https://hfmanor.com/bloxors","https://hfmanor.com/image/bloxors"],["Temple Run 2","https://hfmanor.com/temple-run-2","https://hfmanor.com/image/temple-run-2"],["Google Feud","https://hfmanor.com/google-feud","https://hfmanor.com/image/google-feud"],["Drift Boss","https://hfmanor.com/drift-boss","https://hfmanor.com/image/drift-boss"],["Soccer Random","https://hfmanor.com/soccer-random","https://hfmanor.com/image/soccer-random"],["Moto X3M Pool","https://hfmanor.com/moto-X3M-pool","https://hfmanor.com/image/moto-X3M-pool"],["Vex6","https://hfmanor.com/vex6","https://hfmanor.com/image/vex6"],["Blockpost","https://hfmanor.com/blockpost","https://hfmanor.com/image/blockpost"],["Tanuki Sunset","https://hfmanor.com/tanuki-sunset","https://hfmanor.com/image/tanuki-sunset"],["Crossyroad","https://hfmanor.com/crossyroad","https://hfmanor.com/image/crossyroad"],["Volley Random","https://hfmanor.com/volley-random","https://hfmanor.com/image/volley-random"],["2048","https://hfmanor.com/2048","https://hfmanor.com/image/2048"],["Monster Tracks","https://hfmanor.com/monster-tracks","https://hfmanor.com/image/monster-tracks"],["Monkey Mart","https://hfmanor.com/Monkey Mart","https://hfmanor.com/image/Monkey Mart"],["Baldis Basics","https://hfmanor.com/baldis-basics","https://hfmanor.com/image/baldis-basics"],["Worlds Hardest Game 2","https://hfmanor.com/worlds-hardest-game-2","https://hfmanor.com/image/worlds-hardest-game-2"],["Krunker","https://hfmanor.com/krunker","https://hfmanor.com/image/krunker"],["Drive Mad","https://hfmanor.com/drive-mad","https://hfmanor.com/image/drive-mad"],["Draw The Hill","https://hfmanor.com/draw-the-hill","https://hfmanor.com/image/draw-the-hill"],["Sm64","https://hfmanor.com/sm64","https://hfmanor.com/image/sm64"],["Ducklife4","https://hfmanor.com/ducklife4","https://hfmanor.com/image/ducklife4"],["Tactical Weapon Pack 2","https://hfmanor.com/tactical-weapon-pack-2","https://hfmanor.com/image/tactical-weapon-pack-2"],["Scrapmetal","https://hfmanor.com/scrapmetal","https://hfmanor.com/image/scrapmetal"],["Ovo","https://hfmanor.com/ovo","https://hfmanor.com/image/ovo"],["Stealingthediamond","https://hfmanor.com/stealingthediamond","https://hfmanor.com/image/stealingthediamond"],["Jetpack Joyride","https://hfmanor.com/jetpack-joyride","https://hfmanor.com/image/jetpack-joyride"],["Fnaw","https://hfmanor.com/fnaw","https://hfmanor.com/image/fnaw"],["Run 2","https://hfmanor.com/Run 2","https://hfmanor.com/image/Run 2"],["Paper.io 2","https://hfmanor.com/Paper.io 2","https://hfmanor.com/image/Paper.io 2"],["Moto X3M Spooky","https://hfmanor.com/moto-X3M-spooky","https://hfmanor.com/image/moto-X3M-spooky"],["Backrooms","https://hfmanor.com/backrooms","https://hfmanor.com/image/backrooms"],["Five Nights At Freddy 1","https://hfmanor.com/five-nights-at-freddy-1","https://hfmanor.com/image/five-nights-at-freddy-1"],["Tank Trouble 2","https://hfmanor.com/tank-trouble-2","https://hfmanor.com/image/tank-trouble-2"],["Snowbattle","https://hfmanor.com/snowbattle","https://hfmanor.com/image/snowbattle"],["Run","https://hfmanor.com/run","https://hfmanor.com/image/run"],["Santy Is Home","https://hfmanor.com/santy-is-home","https://hfmanor.com/image/santy-is-home"],["Rooftop Snipers","https://hfmanor.com/rooftop-snipers","https://hfmanor.com/image/rooftop-snipers"],["Chrome Dino","https://hfmanor.com/chrome-dino","https://hfmanor.com/image/chrome-dino"],["Hackertype","https://hfmanor.com/hackertype","https://hfmanor.com/image/hackertype"],["Death Run 3d","https://hfmanor.com/death-run-3d","https://hfmanor.com/image/death-run-3d"],["Sort The Court","https://hfmanor.com/sort-the-court","https://hfmanor.com/image/sort-the-court"],["Grand Shift Auto","https://hfmanor.com/grand-shift-auto","https://hfmanor.com/image/grand-shift-auto"],["Sushi Unroll","https://hfmanor.com/sushi-unroll","https://hfmanor.com/image/sushi-unroll"],["10 Minutes Till Dawn","https://hfmanor.com/10-minutes-till-dawn","https://hfmanor.com/image/10-minutes-till-dawn"],["Zombs Royale","https://hfmanor.com/zombs-royale","https://hfmanor.com/image/zombs-royale"],["Miniputt","https://hfmanor.com/miniputt","https://hfmanor.com/image/miniputt"],["Dragon Vs Bricks","https://hfmanor.com/dragon-vs-bricks","https://hfmanor.com/image/dragon-vs-bricks"],["Drift Hunters","https://hfmanor.com/drift-hunters","https://hfmanor.com/image/drift-hunters"],["Gun Spin","https://hfmanor.com/gun-spin","https://hfmanor.com/image/gun-spin"],["Backrooms 2d","https://hfmanor.com/backrooms-2d","https://hfmanor.com/image/backrooms-2d"],["Just Fall","https://hfmanor.com/just-fall","https://hfmanor.com/image/just-fall"],["Dumbwaystodie","https://hfmanor.com/dumbwaystodie","https://hfmanor.com/image/dumbwaystodie"],["Happy Wheels","https://hfmanor.com/happy-wheels","https://hfmanor.com/image/happy-wheels"],["Funny Shooter 2","https://hfmanor.com/funny-shooter-2","https://hfmanor.com/image/funny-shooter-2"],["Noob Steve Parkour","https://hfmanor.com/noob-steve-parkour","https://hfmanor.com/image/noob-steve-parkour"],["Shell Shockers","https://hfmanor.com/shell-shockers","https://hfmanor.com/image/shell-shockers"],["Vex5","https://hfmanor.com/vex5","https://hfmanor.com/image/vex5"],["The Final Earth 2","https://hfmanor.com/the-final-earth-2","https://hfmanor.com/image/the-final-earth-2"],["Hungry Lamu","https://hfmanor.com/hungry-lamu","https://hfmanor.com/image/hungry-lamu"],["Csgo Clicker","https://hfmanor.com/csgo-clicker","https://hfmanor.com/image/csgo-clicker"],["Vex7","https://hfmanor.com/vex7","https://hfmanor.com/image/vex7"],["The Hotel","https://hfmanor.com/the-hotel","https://hfmanor.com/image/the-hotel"],["A Small World Cup","https://hfmanor.com/a-small-world-cup","https://hfmanor.com/image/a-small-world-cup"],["Five Nights At Freddy 2","https://hfmanor.com/five-nights-at-freddy-2","https://hfmanor.com/image/five-nights-at-freddy-2"],["Burger And Frights","https://hfmanor.com/burger-and-frights","https://hfmanor.com/image/burger-and-frights"],["Sandboxels","https://hfmanor.com/sandboxels","https://hfmanor.com/image/sandboxels"],["Stick Merge","https://hfmanor.com/stick-merge","https://hfmanor.com/image/stick-merge"],["Friday Night Funkin'","https://hfmanor.com/Friday Night Funkin'","https://hfmanor.com/image/Friday Night Funkin'"],["Meme2048","https://hfmanor.com/meme2048","https://hfmanor.com/image/meme2048"],["Smokingbarrels","https://hfmanor.com/smokingbarrels","https://hfmanor.com/image/smokingbarrels"],["Call Of Ops","https://hfmanor.com/call-of-ops","https://hfmanor.com/image/call-of-ops"],["Paper.io 1","https://hfmanor.com/paper.io-1","https://hfmanor.com/image/paper.io-1"],["Time Shooter 3","https://hfmanor.com/time-shooter-3","https://hfmanor.com/image/time-shooter-3"],["Pixel Combat 2","https://hfmanor.com/pixel-combat-2","https://hfmanor.com/image/pixel-combat-2"],["Moto X3M 2","https://hfmanor.com/moto-X3M-2","https://hfmanor.com/image/moto-X3M-2"],["Idle Shark","https://hfmanor.com/idle-shark","https://hfmanor.com/image/idle-shark"],["Hextris","https://hfmanor.com/hextris","https://hfmanor.com/image/hextris"],["Flashtetris","https://hfmanor.com/flashtetris","https://hfmanor.com/image/flashtetris"],["Hill Climb Racing","https://hfmanor.com/hill-climb-racing","https://hfmanor.com/image/hill-climb-racing"],["Hole.io","https://hfmanor.com/hole.io","https://hfmanor.com/image/hole.io"],["Flappy 2048","https://hfmanor.com/flappy-2048","https://hfmanor.com/image/flappy-2048"],["Unfairmario","https://hfmanor.com/unfairmario","https://hfmanor.com/image/unfairmario"],["Cut The Rope","https://hfmanor.com/Cut The Rope","https://hfmanor.com/image/Cut The Rope"],["Soldier Legend","https://hfmanor.com/soldier-legend","https://hfmanor.com/image/soldier-legend"],["Papery Planes","https://hfmanor.com/papery-planes","https://hfmanor.com/image/papery-planes"],["Idle Breakout","https://hfmanor.com/idle-breakout","https://hfmanor.com/image/idle-breakout"],["Ducklife3","https://hfmanor.com/ducklife3","https://hfmanor.com/image/ducklife3"],["Cars Simulator","https://hfmanor.com/cars-simulator","https://hfmanor.com/image/cars-simulator"],["Knife Master","https://hfmanor.com/knife-master","https://hfmanor.com/image/knife-master"],["Bacon May Die","https://hfmanor.com/bacon-may-die","https://hfmanor.com/image/bacon-may-die"],["Tomb Of The Mask","https://hfmanor.com/tomb-of-the-mask","https://hfmanor.com/image/tomb-of-the-mask"],["Backrooms2d","https://hfmanor.com/backrooms2d","https://hfmanor.com/image/backrooms2d"],["Mario","https://hfmanor.com/mario","https://hfmanor.com/image/mario"],["Tacticalassasin2","https://hfmanor.com/tacticalassasin2","https://hfmanor.com/image/tacticalassasin2"],["Generic Fishing Game","https://hfmanor.com/generic-fishing-game","https://hfmanor.com/image/generic-fishing-game"],["Worlds Hardest Game","https://hfmanor.com/worlds-hardest-game","https://hfmanor.com/image/worlds-hardest-game"],["Riddleschool","https://hfmanor.com/riddleschool","https://hfmanor.com/image/riddleschool"],["Wordle","https://hfmanor.com/wordle","https://hfmanor.com/image/wordle"],["Elasticman","https://hfmanor.com/elasticman","https://hfmanor.com/image/elasticman"],["Glass City","https://hfmanor.com/glass-city","https://hfmanor.com/image/glass-city"],["A Dance Of Fire And Ice","https://hfmanor.com/a-dance-of-fire-and-ice","https://hfmanor.com/image/a-dance-of-fire-and-ice"],["Deal Or No Deal","https://hfmanor.com/deal-or-no-deal","https://hfmanor.com/image/deal-or-no-deal"],["Doom","https://hfmanor.com/doom","https://hfmanor.com/image/doom"],["N Gon","https://hfmanor.com/n-gon","https://hfmanor.com/image/n-gon"],["Angry Sharks","https://hfmanor.com/angry-sharks","https://hfmanor.com/image/angry-sharks"],["Popcat Classic","https://hfmanor.com/popcat-classic","https://hfmanor.com/image/popcat-classic"],["Amazing Rope Police","https://hfmanor.com/amazing-rope-police","https://hfmanor.com/image/amazing-rope-police"],["Spacebar Clicker","https://hfmanor.com/spacebar-clicker","https://hfmanor.com/image/spacebar-clicker"],["Run 3","https://hfmanor.com/run 3","https://hfmanor.com/image/run 3"],["Eaglerjp","https://hfmanor.com/eaglerjp","https://hfmanor.com/image/eaglerjp"],["Balldodge","https://hfmanor.com/balldodge","https://hfmanor.com/image/balldodge"],["Theheist","https://hfmanor.com/theheist","https://hfmanor.com/image/theheist"],["Moto X3M Winter","https://hfmanor.com/moto-X3M-winter","https://hfmanor.com/image/moto-X3M-winter"],["Stickman Golf","https://hfmanor.com/stickman-golf","https://hfmanor.com/image/stickman-golf"],["Happy Hop","https://hfmanor.com/happy-hop","https://hfmanor.com/image/happy-hop"],["Cut The Rope Holiday","https://hfmanor.com/Cut The Rope Holiday","https://hfmanor.com/image/Cut The Rope Holiday"],["Dante","https://hfmanor.com/dante","https://hfmanor.com/image/dante"],["Tosstheturtle","https://hfmanor.com/tosstheturtle","https://hfmanor.com/image/tosstheturtle"],["Stack","https://hfmanor.com/stack","https://hfmanor.com/image/stack"],["You Are Bezos","https://hfmanor.com/you-are-bezos","https://hfmanor.com/image/you-are-bezos"],["Bad Ice Cream 3","https://hfmanor.com/bad-ice-cream-3","https://hfmanor.com/image/bad-ice-cream-3"],["Spelunky","https://hfmanor.com/spelunky","https://hfmanor.com/image/spelunky"],["Time Shooter 2","https://hfmanor.com/time-shooter-2","https://hfmanor.com/image/time-shooter-2"],["Awesometanks2","https://hfmanor.com/awesometanks2","https://hfmanor.com/image/awesometanks2"],["Sky Car Stunt","https://hfmanor.com/sky-car-stunt","https://hfmanor.com/image/sky-car-stunt"],["Goodnight","https://hfmanor.com/goodnight","https://hfmanor.com/image/goodnight"],["Infinite Craft","https://hfmanor.com/infinite-craft","https://hfmanor.com/image/infinite-craft"],["Earntodie","https://hfmanor.com/earntodie","https://hfmanor.com/image/earntodie"],["Tube Jumpers","https://hfmanor.com/tube-jumpers","https://hfmanor.com/image/tube-jumpers"],["Hoops","https://hfmanor.com/hoops","https://hfmanor.com/image/hoops"],["Cupcake2048","https://hfmanor.com/cupcake2048","https://hfmanor.com/image/cupcake2048"],["Impossiblequiz","https://hfmanor.com/impossiblequiz","https://hfmanor.com/image/impossiblequiz"],["Rolly Vortex","https://hfmanor.com/rolly-vortex","https://hfmanor.com/image/rolly-vortex"],["Checkers","https://hfmanor.com/checkers","https://hfmanor.com/image/checkers"],["Kitchen Gun Game","https://hfmanor.com/kitchen-gun-game","https://hfmanor.com/image/kitchen-gun-game"],["Bottle Flip 3d","https://hfmanor.com/bottle-flip-3d","https://hfmanor.com/image/bottle-flip-3d"],["Bobtherobber2","https://hfmanor.com/bobtherobber2","https://hfmanor.com/image/bobtherobber2"],["Robuxclicker","https://hfmanor.com/robuxclicker","https://hfmanor.com/image/robuxclicker"],["Precision Client","https://hfmanor.com/precision-client","https://hfmanor.com/image/precision-client"],["Subway Surfers Ny","https://hfmanor.com/subway-surfers-ny","https://hfmanor.com/image/subway-surfers-ny"],["Alienhominid","https://hfmanor.com/alienhominid","https://hfmanor.com/image/alienhominid"],["Circlo","https://hfmanor.com/circlo","https://hfmanor.com/image/circlo"],["Stickwar","https://hfmanor.com/stickwar","https://hfmanor.com/image/stickwar"],["Papasburgeria","https://hfmanor.com/papasburgeria","https://hfmanor.com/image/papasburgeria"],["Frying Nemo","https://hfmanor.com/frying-nemo","https://hfmanor.com/image/frying-nemo"],["Bloons Tower Defense 5","https://hfmanor.com/Bloons Tower Defense 5","https://hfmanor.com/image/Bloons Tower Defense 5"],["HexGL","https://hfmanor.com/HexGL","https://hfmanor.com/image/HexGL"],["Push Your Luck","https://hfmanor.com/push-your-luck","https://hfmanor.com/image/push-your-luck"],["Snowball","https://hfmanor.com/snowball","https://hfmanor.com/image/snowball"],["Slime Rush Td","https://hfmanor.com/slime-rush-td","https://hfmanor.com/image/slime-rush-td"],["Doge2048","https://hfmanor.com/doge2048","https://hfmanor.com/image/doge2048"],["Ltf3","https://hfmanor.com/ltf3","https://hfmanor.com/image/ltf3"],["Push The Square","https://hfmanor.com/push-the-square","https://hfmanor.com/image/push-the-square"],["Bus and subway","https://hfmanor.com/bus and subway","https://hfmanor.com/image/bus and subway"],["Vex4","https://hfmanor.com/vex4","https://hfmanor.com/image/vex4"],["Learntofly2","https://hfmanor.com/learntofly2","https://hfmanor.com/image/learntofly2"],["Thisistheonlylevel","https://hfmanor.com/thisistheonlylevel","https://hfmanor.com/image/thisistheonlylevel"],["Bad Ice Cream 2","https://hfmanor.com/bad-ice-cream-2","https://hfmanor.com/image/bad-ice-cream-2"],["Grindcraft","https://hfmanor.com/grindcraft","https://hfmanor.com/image/grindcraft"],["Riddleschool2","https://hfmanor.com/riddleschool2","https://hfmanor.com/image/riddleschool2"],["Cut The Rope TR","https://hfmanor.com/Cut The Rope TR","https://hfmanor.com/image/Cut The Rope TR"],["Escapingtheprison","https://hfmanor.com/escapingtheprison","https://hfmanor.com/image/escapingtheprison"],["Fruit Ninja","https://hfmanor.com/fruit-ninja","https://hfmanor.com/image/fruit-ninja"],["Stationmeltdown","https://hfmanor.com/stationmeltdown","https://hfmanor.com/image/stationmeltdown"],["Craftmine","https://hfmanor.com/craftmine","https://hfmanor.com/image/craftmine"],["Eel Slap","https://hfmanor.com/eel-slap","https://hfmanor.com/image/eel-slap"],["Portalflash","https://hfmanor.com/portalflash","https://hfmanor.com/image/portalflash"],["Station 141","https://hfmanor.com/station-141","https://hfmanor.com/image/station-141"],["Edge Surf","https://hfmanor.com/edge-surf","https://hfmanor.com/image/edge-surf"],["Fairsquares","https://hfmanor.com/fairsquares","https://hfmanor.com/image/fairsquares"],["Planetlife","https://hfmanor.com/planetlife","https://hfmanor.com/image/planetlife"],["Edgenotfound","https://hfmanor.com/edgenotfound","https://hfmanor.com/image/edgenotfound"],["Slope","https://hfmanor.com/slope","https://hfmanor.com/image/slope"],["Waterworks","https://hfmanor.com/waterworks","https://hfmanor.com/image/waterworks"],["Solitaire","https://hfmanor.com/solitaire","https://hfmanor.com/image/solitaire"],["Bloons Tower Defense","https://hfmanor.com/Bloons Tower Defense","https://hfmanor.com/image/Bloons Tower Defense"],["Wallsmash","https://hfmanor.com/wallsmash","https://hfmanor.com/image/wallsmash"],["Dogeminer2","https://hfmanor.com/Dogeminer2","https://hfmanor.com/image/Dogeminer2"],["Connect3","https://hfmanor.com/connect3","https://hfmanor.com/image/connect3"],["Hexempire","https://hfmanor.com/hexempire","https://hfmanor.com/image/hexempire"],["Adrenalinechallenge","https://hfmanor.com/adrenalinechallenge","https://hfmanor.com/image/adrenalinechallenge"],["Bloons Tower Defense 4","https://hfmanor.com/Bloons Tower Defense 4","https://hfmanor.com/image/Bloons Tower Defense 4"],["Om Bounce","https://hfmanor.com/om-bounce","https://hfmanor.com/image/om-bounce"],["Kittencannon","https://hfmanor.com/kittencannon","https://hfmanor.com/image/kittencannon"],["Flappy plane","https://hfmanor.com/flappy plane","https://hfmanor.com/image/flappy plane"],["Spacegarden","https://hfmanor.com/spacegarden","https://hfmanor.com/image/spacegarden"],["Astray","https://hfmanor.com/astray","https://hfmanor.com/image/astray"],["Tiny Islands","https://hfmanor.com/tiny-islands","https://hfmanor.com/image/tiny-islands"],["Blacholesquare","https://hfmanor.com/blacholesquare","https://hfmanor.com/image/blacholesquare"],["Bonkio","https://hfmanor.com/bonkio","https://hfmanor.com/image/bonkio"],["Defend The Tank","https://hfmanor.com/defend-the-tank","https://hfmanor.com/image/defend-the-tank"],["Matrixrampage","https://hfmanor.com/matrixrampage","https://hfmanor.com/image/matrixrampage"],["Particle Clicker","https://hfmanor.com/particle-clicker","https://hfmanor.com/image/particle-clicker"],["Runner","https://hfmanor.com/runner","https://hfmanor.com/image/runner"],["Level13","https://hfmanor.com/level13","https://hfmanor.com/image/level13"],["Tv Static","https://hfmanor.com/tv-static","https://hfmanor.com/image/tv-static"],["Synesthesia","https://hfmanor.com/synesthesia","https://hfmanor.com/image/synesthesia"],["OfflineParadise","https://hfmanor.com/OfflineParadise","https://hfmanor.com/image/OfflineParadise"],["Minesweeper","https://hfmanor.com/minesweeper","https://hfmanor.com/image/minesweeper"],["Doctor Acorn2","https://hfmanor.com/doctor-acorn2","https://hfmanor.com/image/doctor-acorn2"],["Hardware Tycoon","https://hfmanor.com/hardware-tycoon","https://hfmanor.com/image/hardware-tycoon"],["Rabbit Samurai2","https://hfmanor.com/rabbit-samurai2","https://hfmanor.com/image/rabbit-samurai2"],["Thebattle","https://hfmanor.com/thebattle","https://hfmanor.com/image/thebattle"],["Rolling Forests","https://hfmanor.com/rolling-forests","https://hfmanor.com/image/rolling-forests"],["Exo","https://hfmanor.com/exo","https://hfmanor.com/image/exo"],["Marvinspectrum","https://hfmanor.com/marvinspectrum","https://hfmanor.com/image/marvinspectrum"],["Endlesswar3","https://hfmanor.com/endlesswar3","https://hfmanor.com/image/endlesswar3"],["Twitch Tetris","https://hfmanor.com/twitch-tetris","https://hfmanor.com/image/twitch-tetris"],["Bloons Tower Defense 2","https://hfmanor.com/Bloons Tower Defense 2","https://hfmanor.com/image/Bloons Tower Defense 2"],["Helicopter","https://hfmanor.com/helicopter","https://hfmanor.com/image/helicopter"],["Factoryballs","https://hfmanor.com/factoryballs","https://hfmanor.com/image/factoryballs"],["Go Ball","https://hfmanor.com/go-ball","https://hfmanor.com/image/go-ball"],["Btts","https://hfmanor.com/btts","https://hfmanor.com/image/btts"],["Swerve","https://hfmanor.com/swerve","https://hfmanor.com/image/swerve"],["1","https://hfmanor.com/1","https://hfmanor.com/image/1"],["Wolf2d","https://hfmanor.com/wolf2d","https://hfmanor.com/image/wolf2d"],["DOOMORI","https://hfmanor.com/DOOMORI","https://hfmanor.com/image/DOOMORI"],["Ninjavsevilcorp","https://hfmanor.com/ninjavsevilcorp","https://hfmanor.com/image/ninjavsevilcorp"],["Handshakes","https://hfmanor.com/handshakes","https://hfmanor.com/image/handshakes"],["Fancypantsadventures","https://hfmanor.com/fancypantsadventures","https://hfmanor.com/image/fancypantsadventures"],["Fireboywatergirlforesttemple","https://hfmanor.com/fireboywatergirlforesttemple","https://hfmanor.com/image/fireboywatergirlforesttemple"],["Interactivebuddy","https://hfmanor.com/interactivebuddy","https://hfmanor.com/image/interactivebuddy"],["Shotinthedark","https://hfmanor.com/shotinthedark","https://hfmanor.com/image/shotinthedark"],["Stack Bump 3d","https://hfmanor.com/stack-bump-3d","https://hfmanor.com/image/stack-bump-3d"],["Zigzag","https://hfmanor.com/zigzag","https://hfmanor.com/image/zigzag"],["Iceagebaby","https://hfmanor.com/iceagebaby","https://hfmanor.com/image/iceagebaby"],["Rabbit Samurai","https://hfmanor.com/rabbit-samurai","https://hfmanor.com/image/rabbit-samurai"],["Duke Nukem 2","https://hfmanor.com/duke-nukem-2","https://hfmanor.com/image/duke-nukem-2"],["Space Company","https://hfmanor.com/space-company","https://hfmanor.com/image/space-company"],["Ninja","https://hfmanor.com/ninja","https://hfmanor.com/image/ninja"],["Amidst The Clouds","https://hfmanor.com/amidst-the-clouds","https://hfmanor.com/image/amidst-the-clouds"],["Wolf3d","https://hfmanor.com/wolf3d","https://hfmanor.com/image/wolf3d"],["Stormthehouse2","https://hfmanor.com/stormthehouse2","https://hfmanor.com/image/stormthehouse2"],["Xx142 B2exe","https://hfmanor.com/xx142-b2exe","https://hfmanor.com/image/xx142-b2exe"],["Supermarioconstruct","https://hfmanor.com/supermarioconstruct","https://hfmanor.com/image/supermarioconstruct"],["Vex3","https://hfmanor.com/vex3","https://hfmanor.com/image/vex3"],["Greybox","https://hfmanor.com/greybox","https://hfmanor.com/image/greybox"],["Google Snake","https://hfmanor.com/google-snake","https://hfmanor.com/image/google-snake"],["X Trial Racing","https://hfmanor.com/x-trial-racing","https://hfmanor.com/image/x-trial-racing"],["Dodge","https://hfmanor.com/dodge","https://hfmanor.com/image/dodge"],["Missiles","https://hfmanor.com/missiles","https://hfmanor.com/image/missiles"],["The Final Earth","https://hfmanor.com/the-final-earth","https://hfmanor.com/image/the-final-earth"],["Superautopets","https://hfmanor.com/superautopets","https://hfmanor.com/image/superautopets"],["Vex2","https://hfmanor.com/vex2","https://hfmanor.com/image/vex2"],["Townscaper","https://hfmanor.com/townscaper","https://hfmanor.com/image/townscaper"],["My Rusty Submarine","https://hfmanor.com/my-rusty-submarine","https://hfmanor.com/image/my-rusty-submarine"],["Canyon Defense","https://hfmanor.com/canyon-defense","https://hfmanor.com/image/canyon-defense"],["Align 4","https://hfmanor.com/align-4","https://hfmanor.com/image/align-4"],["Cell Machine","https://hfmanor.com/cell-machine","https://hfmanor.com/image/cell-machine"],["Overwatch","https://hfmanor.com/overwatch","https://hfmanor.com/image/overwatch"],["Polybranch","https://hfmanor.com/polybranch","https://hfmanor.com/image/polybranch"],["100ng","https://hfmanor.com/100ng","https://hfmanor.com/image/100ng"],["Scratcharia","https://hfmanor.com/scratcharia","https://hfmanor.com/image/scratcharia"],["Piclient","https://hfmanor.com/piclient","https://hfmanor.com/image/piclient"],["Highrisehop","https://hfmanor.com/highrisehop","https://hfmanor.com/image/highrisehop"],["Ns Shaft","https://hfmanor.com/ns-shaft","https://hfmanor.com/image/ns-shaft"],["Cannon Basketball 4","https://hfmanor.com/cannon-basketball-4","https://hfmanor.com/image/cannon-basketball-4"],["Stickman Boost","https://hfmanor.com/stickman-boost","https://hfmanor.com/image/stickman-boost"],["Boxhead2play","https://hfmanor.com/boxhead2play","https://hfmanor.com/image/boxhead2play"],["Learntofly","https://hfmanor.com/learntofly","https://hfmanor.com/image/learntofly"],["Weavesilk","https://hfmanor.com/weavesilk","https://hfmanor.com/image/weavesilk"],["Riddletransfer","https://hfmanor.com/riddletransfer","https://hfmanor.com/image/riddletransfer"],["Evolution","https://hfmanor.com/evolution","https://hfmanor.com/image/evolution"],["Cubefield","https://hfmanor.com/cubefield","https://hfmanor.com/image/cubefield"],["Riddletransfer2","https://hfmanor.com/riddletransfer2","https://hfmanor.com/image/riddletransfer2"],["Legacyflashgames","https://hfmanor.com/legacyflashgames","https://hfmanor.com/image/legacyflashgames"],["Champion Island","https://hfmanor.com/champion-island","https://hfmanor.com/image/champion-island"],["Kirkaio","https://hfmanor.com/kirkaio","https://hfmanor.com/image/kirkaio"],["Shogunshowdown","https://hfmanor.com/shogunshowdown","https://hfmanor.com/image/shogunshowdown"],["Riddleschool5","https://hfmanor.com/riddleschool5","https://hfmanor.com/image/riddleschool5"],["Flippy Fish","https://hfmanor.com/flippy-fish","https://hfmanor.com/image/flippy-fish"],["Fantasy Dash","https://hfmanor.com/fantasy-dash","https://hfmanor.com/image/fantasy-dash"],["Iron dash","https://hfmanor.com/iron dash","https://hfmanor.com/image/iron dash"],["Creativekillchamber","https://hfmanor.com/creativekillchamber","https://hfmanor.com/image/creativekillchamber"],["Core Ball","https://hfmanor.com/core-ball","https://hfmanor.com/image/core-ball"],["Avalanche","https://hfmanor.com/avalanche","https://hfmanor.com/image/avalanche"],["Georgeandtheprinter","https://hfmanor.com/georgeandtheprinter","https://hfmanor.com/image/georgeandtheprinter"],["Pigeon Ascent","https://hfmanor.com/pigeon-ascent","https://hfmanor.com/image/pigeon-ascent"],["Gravity Soccer","https://hfmanor.com/gravity-soccer","https://hfmanor.com/image/gravity-soccer"],["Ages Of Conflict","https://hfmanor.com/ages-of-conflict","https://hfmanor.com/image/ages-of-conflict"],["Riddleschool4","https://hfmanor.com/riddleschool4","https://hfmanor.com/image/riddleschool4"],["Adarkroom","https://hfmanor.com/adarkroom","https://hfmanor.com/image/adarkroom"],["Riddleschool3","https://hfmanor.com/riddleschool3","https://hfmanor.com/image/riddleschool3"],["Eggy Car","https://hfmanor.com/eggy-car","https://hfmanor.com/image/eggy-car"],["Yohoho","https://hfmanor.com/yohoho","https://hfmanor.com/image/yohoho"],["9007199254740992","https://hfmanor.com/9007199254740992","https://hfmanor.com/image/9007199254740992"],["Mindustry","https://hfmanor.com/mindustry","https://hfmanor.com/image/mindustry"],["2048 Multitask","https://hfmanor.com/2048-multitask","https://hfmanor.com/image/2048-multitask"],["Chill Radio","https://hfmanor.com/chill-radio","https://hfmanor.com/image/chill-radio"],["There Is No Game","https://hfmanor.com/there-is-no-game","https://hfmanor.com/image/there-is-no-game"],["Throwrocks","https://hfmanor.com/throwrocks","https://hfmanor.com/image/throwrocks"],["Ballistic Chickens","https://hfmanor.com/ballistic-chickens","https://hfmanor.com/image/ballistic-chickens"],["Linerider","https://hfmanor.com/linerider","https://hfmanor.com/image/linerider"],["Bigredbutton","https://hfmanor.com/bigredbutton","https://hfmanor.com/image/bigredbutton"],["Resent Client","https://hfmanor.com/resent-client","https://hfmanor.com/image/resent-client"],["Trimps","https://hfmanor.com/Trimps","https://hfmanor.com/image/Trimps"],["CMM Client","https://hfmanor.com/CMM Client","https://hfmanor.com/image/CMM Client"],["Plants vs zombies 1","https://hfmanor.com/plants vs zombies 1","https://hfmanor.com/image/plants vs zombies 1"],["Pandemic2","https://hfmanor.com/pandemic2","https://hfmanor.com/image/pandemic2"],["99balls","https://hfmanor.com/99balls","https://hfmanor.com/image/99balls"],["Yoshifabrication","https://hfmanor.com/yoshifabrication","https://hfmanor.com/image/yoshifabrication"],["Gimme The Airpod","https://hfmanor.com/gimme-the-airpod","https://hfmanor.com/image/gimme-the-airpod"],["ShapeShootout","https://hfmanor.com/ShapeShootout","https://hfmanor.com/image/ShapeShootout"],["Webretro","https://hfmanor.com/webretro","https://hfmanor.com/image/webretro"],["Breakingthebank","https://hfmanor.com/breakingthebank","https://hfmanor.com/image/breakingthebank"],["Protektor","https://hfmanor.com/protektor","https://hfmanor.com/image/protektor"],["Championarcher","https://hfmanor.com/championarcher","https://hfmanor.com/image/championarcher"],["Just One Boss","https://hfmanor.com/just-one-boss","https://hfmanor.com/image/just-one-boss"],["Blackknight","https://hfmanor.com/blackknight","https://hfmanor.com/image/blackknight"],["Slope Ball","https://hfmanor.com/slope-ball","https://hfmanor.com/image/slope-ball"],["Fake Virus","https://hfmanor.com/fake-virus","https://hfmanor.com/image/fake-virus"],["Fleeingthecomplex","https://hfmanor.com/fleeingthecomplex","https://hfmanor.com/image/fleeingthecomplex"],["Evil Glitch","https://hfmanor.com/evil-glitch","https://hfmanor.com/image/evil-glitch"],["Adventure Drivers","https://hfmanor.com/adventure-drivers","https://hfmanor.com/image/adventure-drivers"],["Battleforgondor","https://hfmanor.com/battleforgondor","https://hfmanor.com/image/battleforgondor"],["Sleepingbeauty","https://hfmanor.com/sleepingbeauty","https://hfmanor.com/image/sleepingbeauty"],["Papaspizzaria","https://hfmanor.com/papaspizzaria","https://hfmanor.com/image/papaspizzaria"],["Spinningrat","https://hfmanor.com/spinningrat","https://hfmanor.com/image/spinningrat"],["Ruffle","https://hfmanor.com/ruffle","https://hfmanor.com/image/ruffle"],["Mineblocks","https://hfmanor.com/mineblocks","https://hfmanor.com/image/mineblocks"],["Nsresurgence","https://hfmanor.com/nsresurgence","https://hfmanor.com/image/nsresurgence"],["Bad Ice Cream","https://hfmanor.com/bad-ice-cream","https://hfmanor.com/image/bad-ice-cream"],["Hba","https://hfmanor.com/hba","https://hfmanor.com/image/hba"],["Froggys Battle","https://hfmanor.com/froggys-battle","https://hfmanor.com/image/froggys-battle"],["Scooperia","https://hfmanor.com/scooperia","https://hfmanor.com/image/scooperia"],["Sand Game","https://hfmanor.com/sand-game","https://hfmanor.com/image/sand-game"],["DogeMiner","https://hfmanor.com/DogeMiner","https://hfmanor.com/image/DogeMiner"],["Achievementunlocked","https://hfmanor.com/achievementunlocked","https://hfmanor.com/image/achievementunlocked"],["Ltf Idle","https://hfmanor.com/ltf-idle","https://hfmanor.com/image/ltf-idle"],["Iceagebaby2","https://hfmanor.com/iceagebaby2","https://hfmanor.com/image/iceagebaby2"],["Osu!","https://hfmanor.com/osu!","https://hfmanor.com/image/osu!"],["Flappy Bird","https://hfmanor.com/flappy-bird","https://hfmanor.com/image/flappy-bird"],["Veloce","https://hfmanor.com/veloce","https://hfmanor.com/image/veloce"],["Geojump","https://hfmanor.com/geojump","https://hfmanor.com/image/geojump"],["Geoneondash","https://hfmanor.com/geoneondash","https://hfmanor.com/image/geoneondash"],["Poom","https://hfmanor.com/poom","https://hfmanor.com/image/poom"],["Idledices","https://hfmanor.com/idledices","https://hfmanor.com/image/idledices"],["Shuttledeck","https://hfmanor.com/shuttledeck","https://hfmanor.com/image/shuttledeck"],["1v1space","https://hfmanor.com/1v1space","https://hfmanor.com/image/1v1space"],["Superfowlist","https://hfmanor.com/superfowlist","https://hfmanor.com/image/superfowlist"],["Game Inside","https://hfmanor.com/game-inside","https://hfmanor.com/image/game-inside"],["Angelunder","https://hfmanor.com/angelunder","https://hfmanor.com/image/angelunder"],["Geodashlite","https://hfmanor.com/geodashlite","https://hfmanor.com/image/geodashlite"],["Dune","https://hfmanor.com/dune","https://hfmanor.com/image/dune"],["Spill It","https://hfmanor.com/spill-it","https://hfmanor.com/image/spill-it"],["Happy Glass 1","https://hfmanor.com/happy-glass-1","https://hfmanor.com/image/happy-glass-1"],["Dreadhead Parkout","https://hfmanor.com/dreadhead-parkout","https://hfmanor.com/image/dreadhead-parkout"],["Route Digger","https://hfmanor.com/route-digger","https://hfmanor.com/image/route-digger"]];
+  var list=FALLBACK.map(function(a){return{name:a[0],url:a[1],icon:a[2]}});
+  var grid=$('#lgrid'),q=$('#lsearch'),box=$('#lframe');
+  function norm(t){return String(t).toLocaleLowerCase('tr')}
+  function render(){
+    var f=norm(q.value.trim()),fr=document.createDocumentFragment(),n=0;
+    list.forEach(function(g,i){
+      if(f&&norm(g.name).indexOf(f)<0)return;
+      n++;
+      var b=document.createElement('button');b.type='button';b.dataset.i=i;b.title=g.name;
+      var im=document.createElement('img');im.loading='lazy';im.alt='';im.referrerPolicy='no-referrer';im.src=g.icon;
+      im.onerror=function(){var ph=document.createElement('div');ph.className='ph';ph.textContent=g.name.charAt(0).toUpperCase();im.replaceWith(ph)};
+      var sp=document.createElement('span');sp.className='n';sp.textContent=g.name;
+      b.appendChild(im);b.appendChild(sp);fr.appendChild(b);
+    });
+    grid.textContent='';grid.appendChild(fr);$('#lcount').textContent=n;
+  }
+  function open(i){
+    var g=list[i];if(!g||!/^https?:\/\//.test(g.url))return;
+    box.textContent='';
+    var f=document.createElement('iframe');
+    f.src=g.url;f.title=g.name;f.setAttribute('allow','accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen');
+    f.setAttribute('referrerpolicy','strict-origin-when-cross-origin');f.allowFullscreen=true;
+    box.appendChild(f);$('#ltitle').textContent=g.name;
+    $('#lList').style.display='none';$('#lPlay').style.display='block';scrollTo(0,0);
+  }
+  function close(){box.textContent='';$('#lPlay').style.display='none';$('#lList').style.display='block'}
+  grid.onclick=function(e){var b=e.target.closest('button');if(b)open(+b.dataset.i)};
+  q.addEventListener('input',render);
+  $('#lback').onclick=close;
+  $('#lfull').onclick=function(){var f=box.firstChild;if(f&&f.requestFullscreen)f.requestFullscreen().catch(function(){})};
+  render();
+  /* games.json aynı klasördeyse otomatik oku ve listeyi güncelle */
+  if(location.protocol!=='file:'&&window.fetch){
+    fetch('games.json',{cache:'no-cache'}).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(j){
+      if(!Array.isArray(j)||!j.length)return;
+      list=j.filter(function(g){return g&&g.name&&g.game_url}).map(function(g){return{name:g.name,url:g.game_url,icon:g.game_image_icon||''}});
+      render();
+    }).catch(function(){});
+  }
+  return{close:close};
+})();
+
+/* Klavye */
+addEventListener('keydown',e=>{
+  const k=e.key,m={ArrowUp:'U',ArrowDown:'D',ArrowLeft:'L',ArrowRight:'R',w:'U',s:'D',a:'L',d:'R'}[k];
+  if(tab!=='games'||/INPUT|TEXTAREA/.test(document.activeElement.tagName))return;
+  if(m){
+    if(game==='g2048'){e.preventDefault();move48(m)}
+    if(game==='gsnake'){e.preventDefault();snake.turn(m)}
+  }
+  if(k===' '&&game==='gflap'){e.preventDefault();flap.jump()}
+});
+drawTm();
+</script>
+</body>
+</html>
